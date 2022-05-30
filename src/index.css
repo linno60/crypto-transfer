@@ -2,8 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-.form {
-    margin: 0 auto;
+* {
+    box-sizing: border-box;
 }
 
 .form-group {
@@ -25,4 +25,17 @@
     text-align: left;
     display: block;
     margin: 0 0 5px 3px;
+}
+
+.button-group button {
+    background-color: #fff;
+    border: 1px solid #333;
+    color: #000;
+    padding: 10px 24px;
+    cursor: pointer;
+    float: left;
+}
+
+.button-group button :hover {
+    background-color: #fff;
 }
