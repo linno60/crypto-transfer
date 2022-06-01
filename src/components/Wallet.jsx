@@ -6,11 +6,15 @@ import erc721Abi from '../abis/erc721Abi.json'
 import erc1155Abi from '../abis/erc1155Abi.json'
 
 const Wallet = () => {
-    const [contractAddress, setContractAddress] = useState(null)
     const [errorMessage, setErrorMessage] = useState(null)
     const [defaultAccount, setDefaultAccount] = useState(null)
     const [balance, setBalance] = useState(null)
     const [connButtonText, setConnButtonText] = useState('Connect Wallet')
+
+    const [contractAddress, setContractAddress] = useState(null)
+    const [amount, setAmount] = useState(null)
+    const [tokenId, setTokenId] = useState(null)
+    const [destAddr, setDestAddr] = useState(null)
 
     const [provider, setProvider] = useState(null)
     const [signer, setSigner] = useState(null)
@@ -136,7 +140,9 @@ const Wallet = () => {
         window.location.reload()
     }
 
-    window.ethereum.on('chainChanged', chainChangedHandler)
+    if(window.ethereum){
+        window.ethereum.on('chainChanged', chainChangedHandler)
+    }
 
     // Create contract object
     useEffect(() => {
@@ -157,40 +163,42 @@ const Wallet = () => {
     const erc20TransferHandler = async (e) => {
         e.preventDefault()
 
-        let sendAmount = e.target.sendAmount.value
-        let destAddress = e.target.destAddress.value
+        let sendAmt = ethers.utils.parseUnits(amount, 18)
+        let txt = await contract.transfer(destAddr, sendAmt)
+        console.log(txt)
+        setTransferHash('Transfer confirmation hash: ' + txt.hash)
+    }
 
-        let txt = await contract.transfer(destAddress, sendAmount)
+    const erc721TransferHandler = async (e) => {
+        e.preventDefault()
+
+        let txt = await contract['safeTransferFrom(address,address,uint256)'](contractAddress, destAddr, tokenId)
         console.log(txt)
         setTransferHash('Transfer confirmation hash: ' + txt.hash)
     }
 
     /*
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        TO DO: erc 721 && 1155 transfer functions
+        erc 1155 transfer functions
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     */
-    const erc721TransferHandler = async (e) => {
+    const erc1155TransferHandler = async (e) => {
         e.preventDefault()
 
-        let itemId = e.target.itemId.value
-        let destAddress = e.target.destAddress.value
-
-        let txt = await contract.transfer(destAddress, itemId)
+        let txt = await contract['safeTransferFrom(address,address,uint256[],uint256[], bytes)'](contractAddress, destAddr, tokenId, amount, [])
         console.log(txt)
         setTransferHash('Transfer confirmation hash: ' + txt.hash)
+        
     }
 
-    const erc1155TransferHandler = () => {}
-
     return (
-        <div className='flex mx-10'>
-            <div className='connectWallet'>
+        <div className='w-full'>
+            <div className='connectWallet mx-10'>
                 <h1 className='font-bold text-2xl mb-5'>
                     Connect Your MetaMask Wallet
                 </h1>
                 <button
-                    className='btn w-full mb-5'
+                    className='btn mb-5'
                     onClick={connectWalletHandler}
                 >
                     {connButtonText}
@@ -206,7 +214,7 @@ const Wallet = () => {
             </div>
             <div className='transfer'>
                 {defaultAccount && (
-                    <div className='flex flex-col ml-10 lg:w-1/2 sm:w-auto'>
+                    <div className='flex flex-col mx-10 lg:w-1/2 sm:w-auto'>
                         <h1 className='mb-5 font-bold text-2xl'>
                             Make A Transfer
                         </h1>
@@ -220,19 +228,37 @@ const Wallet = () => {
                                     </h3>
                                     <div className='button-group flex mb-2.5'>
                                         <button
-                                            onClick={() => setAbi(erc20Abi)}
+                                            onClick={() =>{ 
+                                                setAbi(erc20Abi); 
+                                                setContractAddress(null); 
+                                                setAmount(null); 
+                                                setTokenId(null); 
+                                                setDestAddr(null);
+                                            }}
                                             className='btn btn-outline'
                                         >
                                             ERC 20
                                         </button>
                                         <button
-                                            onClick={() => setAbi(erc721Abi)}
+                                            onClick={() => { 
+                                                setAbi(erc721Abi); 
+                                                setContractAddress(null); 
+                                                setAmount(null); 
+                                                setTokenId(null); 
+                                                setDestAddr(null);
+                                            }}
                                             className='btn btn-outline'
                                         >
                                             ERC 721
                                         </button>
                                         <button
-                                            onClick={() => setAbi(erc1155Abi)}
+                                            onClick={() => { 
+                                                setAbi(erc1155Abi); 
+                                                setContractAddress(null); 
+                                                setAmount(null); 
+                                                setTokenId(null); 
+                                                setDestAddr(null);
+                                            }}
                                             className='btn btn-outline'
                                         >
                                             ERC 1155
@@ -266,6 +292,7 @@ const Wallet = () => {
                                                     Amount
                                                 </label>
                                                 <input
+                                                    onChange={(e) => setAmount(e.target.value)}
                                                     type='text'
                                                     id='sendAmount'
                                                     placeholder='Amount'
@@ -276,6 +303,7 @@ const Wallet = () => {
                                                     Destination Address
                                                 </label>
                                                 <input
+                                                    onChange={e => setDestAddr(e.target.value)}
                                                     type='text'
                                                     id='destAddress'
                                                     placeholder='Destination Address'
@@ -320,6 +348,7 @@ const Wallet = () => {
                                                     Item ID
                                                 </label>
                                                 <input
+                                                    onChange={e => {setTokenId(e.target.value)}}
                                                     type='text'
                                                     id='itemId'
                                                     placeholder='Item ID'
@@ -330,6 +359,7 @@ const Wallet = () => {
                                                     Destination Address
                                                 </label>
                                                 <input
+                                                    onChange={e => setDestAddr(e.target.value)}
                                                     type='text'
                                                     id='destAddress'
                                                     placeholder='Destination Address'
@@ -373,6 +403,7 @@ const Wallet = () => {
                                                     Item ID
                                                 </label>
                                                 <input
+                                                    onChange={e => {setTokenId(e.target.value)}}
                                                     type='text'
                                                     id='itemId'
                                                     placeholder='Item ID'
@@ -383,6 +414,7 @@ const Wallet = () => {
                                                     Amount
                                                 </label>
                                                 <input
+                                                    onChange={(e) => setAmount(e.target.value)}
                                                     type='text'
                                                     id='sendAmount'
                                                     placeholder='Amount'
@@ -393,6 +425,7 @@ const Wallet = () => {
                                                     Destination Address
                                                 </label>
                                                 <input
+                                                    onChange={e => setDestAddr(e.target.value)}
                                                     type='text'
                                                     id='destAddress'
                                                     placeholder='Destination Address'
