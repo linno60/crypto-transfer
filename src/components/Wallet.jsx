@@ -164,6 +164,7 @@ const Wallet = () => {
         e.preventDefault()
 
         let sendAmt = ethers.utils.parseUnits(amount, 18)
+
         let txt = await contract.transfer(destAddr, sendAmt)
         console.log(txt)
         setTransferHash('Transfer confirmation hash: ' + txt.hash)
